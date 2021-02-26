@@ -1,0 +1,118 @@
+version: '3.5'
+
+services:
+  rmqnamesrv:
+    image: foxiswho/rocketmq:4.8.0
+    container_name: rmqnamesrv
+    ports:
+      - 9876:9876
+    volumes:
+      - ./rmqs/logs:/home/rocketmq/logs
+      - ./rmqs/store:/home/rocketmq/store
+    environment:
+      JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512M -Xmx512M -Xmn128m"
+      NAMESRV_ADDR: "localhost:9876"
+    command: ["sh","mqnamesrv"]
+    networks:
+        rmq:
+          aliases:
+            - rmqnamesrv
+
+  rmqbrokera:
+    image: foxiswho/rocketmq:4.8.0
+    container_name: rmqbrokera
+    ports:
+      - 10909:10909
+      - 10911:10911
+    volumes:
+      - ./rmq/alogs:/home/rocketmq/logs
+      - ./rmq/astore:/home/rocketmq/store
+      - ./rmq/brokerconf/broker-a.conf:/etc/rocketmq/broker.conf
+    environment:
+        JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512M -Xmx512M -Xmn128m"
+    command: ["sh","mqbroker","-c","/etc/rocketmq/broker.conf","-n","rmqnamesrv:9876","autoCreateTopicEnable=true"]
+    depends_on:
+      - rmqnamesrv
+    networks:
+      rmq:
+        aliases:
+          - rmqbrokera
+
+  rmqbrokeras:
+    image: foxiswho/rocketmq:4.8.0
+    container_name: rmqbrokeras
+    ports:
+      - 10919:10919
+      - 10921:10921
+    volumes:
+      - ./rmq/aslogs:/home/rocketmq/logs
+      - ./rmq/asstore:/home/rocketmq/store
+      - ./rmq/brokerconf/broker-a-s.conf:/etc/rocketmq/broker.conf
+    environment:
+        JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512M -Xmx512M -Xmn128m"
+    command: ["sh","mqbroker","-c","/etc/rocketmq/broker.conf","-n","rmqnamesrv:9876","autoCreateTopicEnable=true"]
+    depends_on:
+      - rmqnamesrv
+    networks:
+      rmq:
+        aliases:
+          - rmqbrokeras
+
+  rmqbrokerb:
+    image: foxiswho/rocketmq:4.8.0
+    container_name: rmqbrokerb
+    ports:
+      - 10929:10929
+      - 10931:10931
+    volumes:
+      - ./rmq/blogs:/home/rocketmq/logs
+      - ./rmq/bstore:/home/rocketmq/store
+      - ./rmq/brokerconf/broker-b.conf:/etc/rocketmq/broker.conf
+    environment:
+        JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512M -Xmx512M -Xmn128m"
+    command: ["sh","mqbroker","-c","/etc/rocketmq/broker.conf","-n","rmqnamesrv:9876","autoCreateTopicEnable=true"]
+    depends_on:
+      - rmqnamesrv
+    networks:
+      rmq:
+        aliases:
+          - rmqbrokerb
+
+  rmqbrokerbs:
+    image: foxiswho/rocketmq:4.8.0
+    container_name: rmqbrokerbs
+    ports:
+      - 10939:10939
+      - 10941:10941
+    volumes:
+      - ./rmq/bslogs:/home/rocketmq/logs
+      - ./rmq/bsstore:/home/rocketmq/store
+      - ./rmq/brokerconf/broker-b-s.conf:/etc/rocketmq/broker.conf
+    environment:
+        JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512M -Xmx512M -Xmn128m"
+    command: ["sh","mqbroker","-c","/etc/rocketmq/broker.conf","-n","rmqnamesrv:9876","autoCreateTopicEnable=true"]
+    depends_on:
+      - rmqnamesrv
+    networks:
+      rmq:
+        aliases:
+          - rmqbrokerbs
+
+  rmqconsole:
+    image: styletang/rocketmq-console-ng
+    container_name: rmqconsole
+    ports:
+      - 8180:8080
+    environment:
+        JAVA_OPTS: "-Drocketmq.namesrv.addr=rmqnamesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false"
+    depends_on:
+      - rmqnamesrv
+    networks:
+      rmq:
+        aliases:
+          - rmqconsole
+
+networks:
+  rmq:
+    name: rmq
+    driver: bridge

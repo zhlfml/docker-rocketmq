@@ -4,3 +4,7 @@
 *.rej
 *.log
 rmq/rmq/store/*
+rmq/rmq/astore/*
+rmq/rmq/asstore/*
+rmq/rmq/bstore/*
+rmq/rmq/bsstore/*

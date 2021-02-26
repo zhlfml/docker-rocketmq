@@ -12,6 +12,7 @@ services:
       - ./rmqs/store:/home/rocketmq/store
     environment:
       JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512M -Xmx512M -Xmn128m"
+      NAMESRV_ADDR: "localhost:9876"
     command: ["sh","mqnamesrv"]
     networks:
         rmq:
